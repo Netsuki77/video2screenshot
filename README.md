@@ -1,9 +1,8 @@
 # video2screenshot
 
-video2screenshot 是一个便捷的命令行工具，用于自动生成视频文件的多帧截图预览文件。它能帮助你快速创建视频缩略图，方便视频内容概览、管理与归档，同时也可以轻松集成到更复杂的自动化工作流中，提升视频处理效率，适合视频库整理和媒体资源管理。
+video2screenshot 是一个便捷的命令行工具，用于自动生成视频文件的多帧截图预览文件。因为我在MacOS上找不到可以实现这个功能的软件所以写了这个脚本。它能帮助你快速创建视频缩略图，方便视频内容概览、管理与归档，同时也可以轻松集成到更复杂的自动化工作流中，提升视频处理效率，适合视频库整理和媒体资源管理。
 
 生成的多帧截图预览文件示例：
-![示例图片](https://github.com/NetsukiAo/video2screenshot/blob/main/SampleResults.jpg)
 <img src="https://github.com/NetsukiAo/video2screenshot/blob/main/SampleResults.jpg" alt="示例图片" width="600"/>
 
 ## 主要特性
@@ -55,10 +54,10 @@ video2screenshot 是一个便捷的命令行工具，用于自动生成视频文
 
 # video2screenshot
 
-video2screenshot is a convenient command-line tool that automatically generates multi-frame preview images from video files. It helps you quickly create video thumbnails for easy content overview, management, and archiving, and can be seamlessly integrated into more complex automation workflows to boost video processing efficiency. This tool is perfect for organizing video libraries and managing media resources.
+video2screenshot is a convenient command-line tool that automatically generates multi-frame preview images from video files. Because I couldn't find any software on macOS that offered this functionality, I wrote this script. It helps you quickly create video thumbnails for easy content overview, management, and archiving, and can be seamlessly integrated into more complex automation workflows to boost video processing efficiency. This tool is perfect for organizing video libraries and managing media resources.
 
 Example of generated multi-frame preview image:
-![Sample Image](https://github.com/NetsukiAo/video2screenshot/blob/main/SampleResults.jpg)
+<img src="https://github.com/NetsukiAo/video2screenshot/blob/main/SampleResults.jpg" alt="Sample Image" width="600"/>
 
 ## Key Features
 
