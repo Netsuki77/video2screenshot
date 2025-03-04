@@ -4,6 +4,7 @@ video2screenshot 是一个便捷的命令行工具，用于自动生成视频文
 
 生成的多帧截图预览文件示例：
 ![示例图片](https://github.com/NetsukiAo/video2screenshot/blob/main/SampleResults.jpg)
+<img src="[images/example.png](https://github.com/NetsukiAo/video2screenshot/blob/main/SampleResults.jpg)" alt="示例图片" width="400"/>
 
 ## 主要特性
 
