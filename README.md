@@ -19,7 +19,7 @@ video2screenshot 是一个便捷的命令行工具，用于自动生成视频文
      - **macOS：** 推荐先安装 [Homebrew](https://brew.sh/)，然后通过 Homebrew 安装 ffmpeg 与 ImageMagick。  
 
 2. **运行脚本**  
-   在任意目录下运行该脚本，需传入视频文件的绝对路径作为唯一参数。示例命令如下：  
+   下载仓库中的`video2screenshots.sh`，在任意目录下运行该脚本，需传入视频文件的绝对路径作为唯一参数。示例命令如下：  
    ```bash
    <path>/video2screenshots.sh "<path>/<videoFileName>.mkv"
    ```
@@ -52,7 +52,7 @@ video2screenshot is a convenient command-line tool that automatically generates 
      - **macOS:** It is recommended to install [Homebrew](https://brew.sh/) first, then install ffmpeg and ImageMagick via Homebrew.
 
 2. **Running the Script**  
-   Execute the script from any directory by providing the absolute path to the video file as the only parameter. For example:  
+   Download the `video2screenshots.sh` from the repository, execute the script from any directory by providing the absolute path to the video file as the only parameter. For example:  
    ```bash
    <path>/video2screenshots.sh "<path>/<videoFileName>.mkv"
    ```
