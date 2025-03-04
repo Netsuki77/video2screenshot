@@ -29,6 +29,9 @@ video2screenshot 是一个便捷的命令行工具，用于自动生成视频文
    - 运行完成后，该临时文件夹及其中所有文件会被自动删除。
    - 最终生成的多帧截图预览文件将保存在视频文件所在目录中，文件名与视频文件相同。
 
+🌟如果觉得这个脚本有帮助到你，可以点个星（右上角的Star）关注这个项目。今后我可能会继续优化这个脚本或者增加更多不同的版本以针对性优化不同的用例。
+
+
 ---
 
 # video2screenshot
@@ -60,3 +63,5 @@ video2screenshot is a convenient command-line tool that automatically generates 
    - The script creates a temporary folder (named after the video file) in its directory to store the screenshot files.
    - Once the process is complete, the temporary folder and all its contents are automatically deleted.
    - The final multi-frame preview image is saved in the same directory as the video file, using the video file’s name.
+
+🌟If you find this script helpful, please give it a star (click the Star button at the top right) to follow the project. I may continue to improve this script or add different versions in the future to better optimize for various use cases.
