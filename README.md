@@ -23,7 +23,7 @@ video2screenshot 是一个便捷的命令行工具，用于自动生成视频文
    ```bash
    <path>/video2screenshots.sh "<path>/<videoFileName>.mkv"
    ```
-	
+
  3. **生成预览图**
   * 脚本会在其所在目录下创建一个以视频文件同名的文件夹，用于存储临时截图文件。
   * 运行完成后，该临时文件夹及其中所有文件会被自动删除。
