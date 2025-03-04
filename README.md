@@ -3,7 +3,7 @@
 video2screenshot 是一个便捷的命令行工具，用于自动生成视频文件的多帧截图预览文件。因为我在MacOS上找不到可以实现这个功能的软件所以写了这个脚本。它能帮助你快速创建视频缩略图，方便视频内容概览、管理与归档，同时也可以轻松集成到更复杂的自动化工作流中，提升视频处理效率，适合视频库整理和媒体资源管理。
 
 生成的多帧截图预览文件示例：
-<img src="https://github.com/NetsukiAo/video2screenshot/blob/main/SampleResults.jpg" alt="示例图片" width="600"/>
+\n<img src="https://github.com/NetsukiAo/video2screenshot/blob/main/SampleResults.jpg" alt="示例图片" width="600"/>
 
 ## 主要特性
 
