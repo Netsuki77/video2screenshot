@@ -10,6 +10,8 @@ video2screenshot 是一个便捷的命令行工具，用于自动生成视频文
 * 多平台支持：兼容 macOS、Linux 等可运行ffmpeg与ImageMagick的系统。
 * 依赖：借助 ffmpeg 快速提取视频帧，并利用 ImageMagick 进行图像合成。
 * 自动判断截图数量：根据视频长度自动化判断所需截图的数量，用户可根据注释自行修改参数以自定义规则。
+* 文件夹批处理：支持传入文件夹参数，遍历其中的视频文件批量生成预览文件。
+* 避免重复生成：当识别到文件夹下有与视频同名并带有`_shortcut`后缀的文件时会跳过该视频文件。
 
 ## 使用方式
 
@@ -65,6 +67,8 @@ Example of generated multi-frame preview image:
 - **Cross-Platform Support:** Compatible with systems like macOS and Linux that support ffmpeg and ImageMagick.
 - **Dependencies:** Utilizes ffmpeg for fast frame extraction and ImageMagick for image composition.
 - **Automatic Frame Calculation:** Determines the required number of screenshots based on the video length automatically. Users can modify parameters in the script comments to customize this behavior.
+- **Folder Batch Processing: ** Supports passing in folder parameters to batch generate preview files for all video files within.
+- **Avoid Duplicate Generation: ** Skips video files when a file with the same name as the video and a `_shortcut` suffix is detected in the folder.
 
 ## How to Use
 
