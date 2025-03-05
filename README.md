@@ -67,8 +67,8 @@ Example of generated multi-frame preview image:
 - **Cross-Platform Support:** Compatible with systems like macOS and Linux that support ffmpeg and ImageMagick.
 - **Dependencies:** Utilizes ffmpeg for fast frame extraction and ImageMagick for image composition.
 - **Automatic Frame Calculation:** Determines the required number of screenshots based on the video length automatically. Users can modify parameters in the script comments to customize this behavior.
-- **Folder Batch Processing: ** Supports passing in folder parameters to batch generate preview files for all video files within.
-- **Avoid Duplicate Generation: ** Skips video files when a file with the same name as the video and a `_shortcut` suffix is detected in the folder.
+- **Folder Batch Processing:** Supports passing in folder parameters to batch generate preview files for all video files within.
+- **Avoid Duplicate Generation:** Skips video files when a file with the same name as the video and a `_shortcut` suffix is detected in the folder.
 
 ## How to Use
 
