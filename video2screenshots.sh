@@ -8,6 +8,10 @@
 #   ./video2screenshots.sh ~/Movies/
 # ----------------------------------------------
 
+LOCKFILE="$(dirname "$0")/video2screenshots.lock"
+exec 200>"$LOCKFILE"
+lockf -t 0 200 || { echo "脚本已在运行，退出"; exit 1; }
+
 # 定义处理单个视频文件的函数
 process_video() {
     local VIDEO_PATH="$1"
@@ -15,6 +19,13 @@ process_video() {
     VIDEO_DIR="$(dirname "$VIDEO_PATH")"
     BASENAME=$(basename "$VIDEO_PATH")
     PREFIX="${BASENAME%.*}"
+
+    # 检查预览截图是否已存在
+    screenshot_file="${VIDEO_DIR}/${PREFIX}_screenshot.jpg"
+    if [ -f "$screenshot_file" ]; then
+        echo "预览截图已存在: ${screenshot_file}，跳过处理该视频。"
+        return
+    fi
 
     # 对文件名中的 [ 和 ] 进行转义，供后续 montage 使用
     ESCAPED_PREFIX=$(echo "$PREFIX" | sed -e 's/\[/\\[/g' -e 's/\]/\\]/g')
@@ -27,41 +38,73 @@ process_video() {
     duration=$(ffprobe -i "$VIDEO_PATH" -show_entries format=duration -v quiet -of csv="p=0")
     duration_int=$(printf "%.0f" "$duration")
 
-    # 根据视频长度选择截图间隔
+    # 先获取视频分辨率来判断方向（横屏/竖屏）
+    video_resolution=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 "$VIDEO_PATH")
+    width=$(echo "$video_resolution" | cut -d',' -f1)
+    height=$(echo "$video_resolution" | cut -d',' -f2)
+    if [ "$width" -ge "$height" ]; then
+        orientation="landscape"
+    else
+        orientation="portrait"
+    fi
+    echo "视频方向: ${orientation}"
+
+# 根据视频长度和视频方向设置截图间隔
     if [ "$duration_int" -lt 30 ]; then
         # 视频长度小于30秒，每3秒生成一张截图
         interval=3
-    elif [ "$duration_int" -lt 60 ]; then
-        # 视频长度小于1分钟，固定生成12张截图
-        desired_count=12
-        interval=$(( duration_int / desired_count ))
-    elif [ "$duration_int" -lt 120 ]; then
-        # 视频长度小于2分钟，固定生成14张截图
-        desired_count=14
-        interval=$(( duration_int / desired_count ))
-    elif [ "$duration_int" -lt 240 ]; then
-        # 视频长度小于4分钟，固定生成16张截图
-        desired_count=16
-        interval=$(( duration_int / desired_count ))
-    elif [ "$duration_int" -lt 480 ]; then
-        # 视频长度小于8分钟，固定生成20张截图
-        desired_count=20
-        interval=$(( duration_int / desired_count ))
-    elif [ "$duration_int" -lt 900 ]; then
-        # 视频长度小于15分钟，固定生成24张截图
-        desired_count=24
-        interval=$(( duration_int / desired_count ))
-    elif [ "$duration_int" -lt 1800 ]; then
-        # 视频长度小于30分钟，固定生成28张截图
-        desired_count=28
-        interval=$(( duration_int / desired_count ))
-    elif [ "$duration_int" -lt 3600 ]; then
-        # 视频长度小于60分钟，固定生成32张截图
-        desired_count=32
-        interval=$(( duration_int / desired_count ))
+    elif [ "$orientation" = "portrait" ]; then
+        # 竖图视频规则
+        if [ "$duration_int" -lt 120 ]; then
+            # 视频长度小于2分钟，固定生成15张截图
+            desired_count=15
+            interval=$(( duration_int / desired_count ))
+        elif [ "$duration_int" -lt 240 ]; then
+            # 视频长度小于4分钟，固定生成18张截图
+            desired_count=18
+            interval=$(( duration_int / desired_count ))
+        elif [ "$duration_int" -lt 480 ]; then
+            # 视频长度小于8分钟，固定生成21张截图
+            desired_count=21
+            interval=$(( duration_int / desired_count ))
+        elif [ "$duration_int" -lt 1800 ]; then
+            # 视频长度小于30分钟，固定生成28张截图
+            desired_count=28
+            interval=$(( duration_int / desired_count ))
+        elif [ "$duration_int" -lt 3600 ]; then
+            # 视频长度小于60分钟，固定生成40张截图
+            desired_count=40
+            interval=$(( duration_int / desired_count ))
+        else
+            # 视频长度超过60分钟，每90秒生成一张截图
+            interval=90
+        fi
     else
-        # 视频长度超过60分钟，每120秒生成一张截图
-        interval=120
+        # 横屏视频规则（沿用原有逻辑）
+        if [ "$duration_int" -lt 60 ]; then
+            desired_count=12
+            interval=$(( duration_int / desired_count ))
+        elif [ "$duration_int" -lt 120 ]; then
+            desired_count=14
+            interval=$(( duration_int / desired_count ))
+        elif [ "$duration_int" -lt 240 ]; then
+            desired_count=16
+            interval=$(( duration_int / desired_count ))
+        elif [ "$duration_int" -lt 480 ]; then
+            desired_count=20
+            interval=$(( duration_int / desired_count ))
+        elif [ "$duration_int" -lt 900 ]; then
+            desired_count=24
+            interval=$(( duration_int / desired_count ))
+        elif [ "$duration_int" -lt 1800 ]; then
+            desired_count=28
+            interval=$(( duration_int / desired_count ))
+        elif [ "$duration_int" -lt 3600 ]; then
+            desired_count=40
+            interval=$(( duration_int / desired_count ))
+        else
+            interval=90
+        fi
     fi
 
     echo "正在处理视频: ${VIDEO_PATH}"
@@ -82,14 +125,37 @@ process_video() {
 
     ffmpeg -ss 2 -i "$VIDEO_PATH" -vf "$filter" -qscale:v 1 "${SCREENSHOT_DIR}/${PREFIX}_%04d.jpg"
 
-    # 根据截图数量设置 montage 的每行图片数量
-    num=$(ls "${SCREENSHOT_DIR}/${PREFIX}"_*.jpg 2>/dev/null | wc -l)
-    if [ "$num" -le 12 ]; then
-        tile="3x"
-    elif [ "$num" -le 32 ]; then
-        tile="4x"
+    # 获取视频分辨率来判断方向（横屏/竖屏）
+    video_resolution=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 "$VIDEO_PATH")
+    width=$(echo "$video_resolution" | cut -d',' -f1)
+    height=$(echo "$video_resolution" | cut -d',' -f2)
+    if [ "$width" -ge "$height" ]; then
+        orientation="landscape"
     else
-        tile="5x"
+        orientation="portrait"
+    fi
+    echo "视频方向: ${orientation}"
+
+    # 根据截图数量和视频方向设置 montage 的每行图片数量
+    num=$(ls "${SCREENSHOT_DIR}/${PREFIX}"_*.jpg 2>/dev/null | wc -l)
+    if [ "$orientation" = "landscape" ]; then
+        if [ "$num" -le 12 ]; then
+            tile="3x"
+        elif [ "$num" -le 32 ]; then
+            tile="4x"
+        else
+            tile="5x"
+        fi
+    else
+        if [ "$num" -le 15 ]; then
+            tile="5x"
+        elif [ "$num" -le 18 ]; then
+            tile="6x"
+        elif [ "$num" -le 28 ]; then
+            tile="7x"
+        else
+            tile="8x"
+        fi
     fi
 
     echo "共截取 ${num} 张图片，拼接时每行使用 ${tile%%x} 张图片"
@@ -114,17 +180,28 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 INPUT_PATH="$1"
 
+# 记录脚本开始运行的时间（秒）
+START_TIME=$(date +%s)
+
 # 判断输入是目录还是文件
 if [ -d "$INPUT_PATH" ]; then
     echo "检测到输入是目录，将处理目录下的视频文件..."
     # 遍历目录下所有文件
     for video in "$INPUT_PATH"/*; do
+        # 检查是否已运行超过50分钟（3000秒）
+        current_time=$(date +%s)
+        elapsed=$(( current_time - START_TIME ))
+        if [ $elapsed -ge 3000 ]; then
+            echo "运行时间已达到50分钟，停止处理未处理的视频文件。"
+            break
+        fi
+        
         # 判断是否为常见视频文件（根据扩展名，忽略大小写）
         if [ -f "$video" ]; then
             ext="${video##*.}"
             ext_lower=$(echo "$ext" | tr 'A-Z' 'a-z')
             case "$ext_lower" in
-                mp4|mov|mkv|avi|flv|wmv)
+                mp4|mov|mkv|avi|flv|wmv|rm|mpg)
                     process_video "$video"
                     ;;
                 *)
