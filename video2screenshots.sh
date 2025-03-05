@@ -2,10 +2,9 @@
 
 # ----------------------------------------------
 # 用法:
-#   ./video2screenshots.sh <视频文件或目录>
+#   ./video2screenshots.sh <视频文件或目录> [<视频文件或目录> ...]
 # 例如:
-#   ./video2screenshots.sh ~/Movies/myvideo.mp4
-#   ./video2screenshots.sh ~/Movies/
+#   ./video2screenshots.sh ~/Movies/myvideo.mp4 ~/Movies/
 # ----------------------------------------------
 
 LOCKFILE="$(dirname "$0")/video2screenshots.lock"
@@ -49,82 +48,68 @@ process_video() {
     fi
     echo "视频方向: ${orientation}"
 
-# 忽略视频的前2秒
+    # 忽略视频的前2秒
     pre_skip_seconds=2
-# 得出用于截图的有效视频时长
+    # 得出用于截图的有效视频时长
     effective_duration=$(( duration_int - pre_skip_seconds ))
 
-# 根据视频长度和视频方向设置截图间隔
+    # 根据视频长度和视频方向设置截图间隔
     if [ "$effective_duration" -lt 30 ]; then
         # 视频长度小于30秒，每3秒生成一张截图
         interval=3
     elif [ "$orientation" = "portrait" ]; then
         # 竖图视频规则
         if [ "$effective_duration" -lt 60 ]; then
-            # 视频长度小于1分钟，固定生成12张截图
             desired_count=12
             interval=$(( effective_duration / desired_count ))
         elif [ "$effective_duration" -lt 120 ]; then
-            # 视频长度小于2分钟，固定生成15张截图
             desired_count=15
             interval=$(( effective_duration / desired_count ))
         elif [ "$effective_duration" -lt 240 ]; then
-            # 视频长度小于4分钟，固定生成18张截图
             desired_count=18
             interval=$(( effective_duration / desired_count ))
         elif [ "$effective_duration" -lt 480 ]; then
-            # 视频长度小于8分钟，固定生成21张截图
             desired_count=21
             interval=$(( effective_duration / desired_count ))
         elif [ "$effective_duration" -lt 900 ]; then
-            # 视频长度小于15分钟，固定生成24张截图
             desired_count=24
             interval=$(( effective_duration / desired_count ))
         elif [ "$effective_duration" -lt 1800 ]; then
-            # 视频长度小于30分钟，固定生成28张截图
             desired_count=28
             interval=$(( effective_duration / desired_count ))
         elif [ "$effective_duration" -lt 3600 ]; then
-            # 视频长度小于60分钟，固定生成32张截图
             desired_count=32
             interval=$(( effective_duration / desired_count ))
         else
-            # 视频长度超过60分钟，每90秒生成一张截图
             interval=90
+            desired_count=$(( effective_duration / interval ))
         fi
     else
         # 横屏视频规则（沿用原有逻辑）
         if [ "$effective_duration" -lt 60 ]; then
-            # 视频长度小于1分钟，固定生成12张截图
             desired_count=12
             interval=$(( effective_duration / desired_count ))
         elif [ "$effective_duration" -lt 120 ]; then
-            # 视频长度小于2分钟，固定生成14张截图
             desired_count=14
             interval=$(( effective_duration / desired_count ))
         elif [ "$effective_duration" -lt 240 ]; then
-            # 视频长度小于4分钟，固定生成16张截图
             desired_count=16
             interval=$(( effective_duration / desired_count ))
         elif [ "$effective_duration" -lt 480 ]; then
-            # 视频长度小于8分钟，固定生成20张截图
             desired_count=20
             interval=$(( effective_duration / desired_count ))
         elif [ "$effective_duration" -lt 900 ]; then
-            # 视频长度小于15分钟，固定生成24张截图
             desired_count=24
             interval=$(( effective_duration / desired_count ))
         elif [ "$effective_duration" -lt 1800 ]; then
-            # 视频长度小于30分钟，固定生成28张截图
             desired_count=28
             interval=$(( effective_duration / desired_count ))
         elif [ "$effective_duration" -lt 3600 ]; then
-            # 视频长度小于60分钟，固定生成32张截图
             desired_count=32
             interval=$(( effective_duration / desired_count ))
         else
-            # 视频长度超过60分钟，每90秒生成一张截图
             interval=90
+            desired_count=$(( effective_duration / interval ))
         fi
     fi
 
@@ -134,10 +119,8 @@ process_video() {
     # 检查视频是否包含字幕流
     subtitle_stream=$(ffprobe -v error -select_streams s -show_entries stream=index -of csv=p=0 "$VIDEO_PATH")
     if [ -z "$subtitle_stream" ]; then
-        # 没有字幕流，不使用字幕过滤器
         subtitle_filter=""
     else
-        # 存在字幕流，使用字幕过滤器
         subtitle_filter="subtitles='${VIDEO_PATH}',"
     fi
 
@@ -145,17 +128,6 @@ process_video() {
     filter="${subtitle_filter}fps=1/${interval},scale='if(gt(min(iw,ih),360),if(gt(iw,ih),-2,360),iw)':'if(gt(min(iw,ih),360),if(gt(iw,ih),360,-2),ih)',drawtext=text='%{pts\\:hms}  ':x=w-tw-12:y=h-th-12:fontsize=22:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=4"
 
     ffmpeg -ss "$pre_skip_seconds" -i "$VIDEO_PATH" -vf "$filter" -qscale:v 1 -frames:v ${desired_count} "${SCREENSHOT_DIR}/${PREFIX}_%04d.jpg"
-
-    # 获取视频分辨率来判断方向（横屏/竖屏）
-    video_resolution=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 "$VIDEO_PATH")
-    width=$(echo "$video_resolution" | cut -d',' -f1)
-    height=$(echo "$video_resolution" | cut -d',' -f2)
-    if [ "$width" -ge "$height" ]; then
-        orientation="landscape"
-    else
-        orientation="portrait"
-    fi
-    echo "视频方向: ${orientation}"
 
     # 根据截图数量和视频方向设置 montage 的每行图片数量
     num=$(ls "${SCREENSHOT_DIR}/${PREFIX}"_*.jpg 2>/dev/null | wc -l)
@@ -196,50 +168,41 @@ process_video() {
     echo "拼图完成，输出文件: ${VIDEO_DIR}/${PREFIX}_screenshot.jpg"
 }
 
-# 检查参数是否传入
 if [ $# -lt 1 ]; then
-    echo "用法: $0 <视频文件或目录>"
+    echo "用法: $0 <视频文件或目录> [<视频文件或目录> ...]"
     exit 1
 fi
 
-# 获取脚本所在目录
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-INPUT_PATH="$1"
-
-# 记录脚本开始运行的时间（秒）
 START_TIME=$(date +%s)
 
-# 判断输入是目录还是文件
-if [ -d "$INPUT_PATH" ]; then
-    echo "检测到输入是目录，将处理目录下的视频文件..."
-    # 遍历目录下所有文件
-    for video in "$INPUT_PATH"/*; do
-        # 检查是否已运行超过50分钟（3000秒）
-        current_time=$(date +%s)
-        elapsed=$(( current_time - START_TIME ))
-        if [ $elapsed -ge 3000 ]; then
-            echo "运行时间已达到50分钟，停止处理未处理的视频文件。"
-            break
-        fi
-        
-        # 判断是否为常见视频文件（根据扩展名，忽略大小写）
-        if [ -f "$video" ]; then
-            ext="${video##*.}"
-            ext_lower=$(echo "$ext" | tr 'A-Z' 'a-z')
-            case "$ext_lower" in
-                mp4|mov|mkv|avi|flv|wmv|rm|mpg)
-                    process_video "$video"
-                    ;;
-                *)
-                    echo "跳过非视频文件: $video"
-                    ;;
-            esac
-        fi
-    done
-elif [ -f "$INPUT_PATH" ]; then
-    process_video "$INPUT_PATH"
-else
-    echo "错误: 参数既不是文件也不是目录"
-    exit 1
-fi
+# 遍历所有传入的参数
+for INPUT_PATH in "$@"; do
+    if [ -d "$INPUT_PATH" ]; then
+        echo "检测到目录: $INPUT_PATH，正在处理目录下的视频文件..."
+        for video in "$INPUT_PATH"/*; do
+            current_time=$(date +%s)
+            elapsed=$(( current_time - START_TIME ))
+            if [ $elapsed -ge 3000 ]; then
+                echo "运行时间已达到50分钟，停止处理未处理的视频文件。"
+                break 2
+            fi
+            if [ -f "$video" ]; then
+                ext="${video##*.}"
+                ext_lower=$(echo "$ext" | tr 'A-Z' 'a-z')
+                case "$ext_lower" in
+                    mp4|mov|mkv|avi|flv|wmv|rm|mpg)
+                        process_video "$video"
+                        ;;
+                    *)
+                        echo "跳过非视频文件: $video"
+                        ;;
+                esac
+            fi
+        done
+    elif [ -f "$INPUT_PATH" ]; then
+        process_video "$INPUT_PATH"
+    else
+        echo "错误: 参数 $INPUT_PATH 既不是文件也不是目录"
+    fi
+done
